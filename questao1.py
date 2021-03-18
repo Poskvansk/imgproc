@@ -4,11 +4,37 @@ import numpy as np
 import math
 
 
-def show_image(name, img):
+def show_image(img):
 
-    cv2.imshow(name, img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    plt.imshow(img[:,:,::-1]); plt.show()
+
+
+def media_valores(img, fator):
+
+    h, w = img.shape[0]*fator, img.shape[1]*fator
+
+
+
+    big_img = np.zeros((h,w,3), dtype=np.uint8)
+
+
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+
+            big_img[i* fator, j* fator] = img[i,j]
+
+
+    for i in range(h):
+        for j in range(w):
+
+            dist = (i/fator) - math.floor(i/fator)
+            w1 = 1-dist
+            w2 = 1-w1
+
+            big_img[i, j] = (img[ math.floor(i/fator) ,math.floor(j/fator)]) *w1 + (img[math.ceil(i/fator)-1, math.ceil(j/fator)-1]) *w2
+
+    show_image(big_img)
+
 
 def dec_int(img, fator):
 
@@ -27,7 +53,7 @@ def dec_int(img, fator):
         for j in range(w):
 
             small_img[i, j] = img[i*fator, j*fator]
-
+    
     ####################################################
     h, w = small_img.shape[0]*fator, small_img.shape[1]*fator
 
@@ -40,35 +66,25 @@ def dec_int(img, fator):
     ####################################################
 
     bicubic = cv2.resize(src=small_img, dsize=(w,h), interpolation=cv2.INTER_CUBIC)
-    # plt.imshow(bicubic[:,:,::-1])
-    # plt.show()
 
-    # compare = np.hstack((nearest, bicubic))
-    # plt.imshow(compare[:,:,::-1])
-    # plt.show()
-
-# def edge_improv():
-#     #filtro agucamento dominio espacial melhorar qualidade subjetiva da imagem
-
-#     laplace_kernel = np.array(  [[0, -1, 0], 
-#                                 [-1, 4, -1],
-#                                  [0, -1, 0]])
+    media_valores(small_img, fator)
 
 
-#     img = cv2.imread("test80.jpg")
+def edge_improv():
 
-#     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # sharp = np.array(  [[0, -1, 0],  
+    #                     [-1, 5, -1], 
+    #                     [0, -1, 0]])
 
-#     blur = cv2.GaussianBlur(gray,(7,7), 0)
-#     show_image("gray", blur)
+    laplace = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
 
-#     edge = cv2.filter2D(blur, -1, laplace_kernel)
-#     show_image("gray", edge)
 
-#     new = img
-#     for i in range(3):
-#         new[:,:,i] = img[:,:,i] + edge
+    img = cv2.imread("test80.jpg")
 
-#     show_image("gray", new)
+    # sharpened_img = cv2.filter2D(img, -1, sharp)
 
-# edge_improv()
+    blur = cv2.GaussianBlur(img, (3,3), sigmaX=1)
+
+    img2 = cv2.filter2D(img, -1, laplace)
+
+    show_image("sharp", img2)
